@@ -3,18 +3,9 @@ import { TrendingUp, Search, Plus } from 'lucide-react'
 import { useLeads } from './hooks/useLeads'
 import { LeadCard } from './components/LeadCard'
 import { AddLeadModal } from './components/AddLeadModal'
+import { LeadDetailModal } from './components/LeadDetailModal'
 import type { Lead } from './types'
 
-// LeadDetailModal placeholder (full implementation coming next)
-const LeadDetailModal = ({ lead, onClose }: { lead: Lead; onClose: () => void }) => (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-    <div className="bg-white p-6 rounded-xl min-w-[500px]">
-      <h2 className="text-xl font-bold mb-4">{lead.name} Details</h2>
-      <p className="text-slate-500 mb-6">Modal placeholder...</p>
-      <button onClick={onClose} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Close</button>
-    </div>
-  </div>
-)
 
 const FILTERS = ['ALL', 'NEW', 'CONTACTED', 'QUALIFIED', 'PROPOSAL_SENT', 'WON', 'LOST']
 
@@ -130,7 +121,14 @@ export default function App() {
         onClose={() => setIsAddModalOpen(false)}
         onLeadAdded={() => { setIsAddModalOpen(false); refetch() }}
       />
-      {selectedLead && <LeadDetailModal lead={selectedLead} onClose={() => setSelectedLead(null)} />}
+      <LeadDetailModal
+        leadId={selectedLead?.id ?? null}
+        onClose={() => setSelectedLead(null)}
+        onLeadUpdated={(updated) => {
+          setSelectedLead(updated)
+          refetch()
+        }}
+      />
 
     </div>
   )
