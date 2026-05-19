@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { X, Phone, ChevronDown, Check, Loader2, Calendar, RefreshCw } from 'lucide-react'
 import { format, formatDistanceToNow } from 'date-fns'
 import { getLeadById, updateLeadStatus, addDiscussion } from '../api/leads'
+import { useFocusTrap } from '../hooks/useFocusTrap'
 import { StatusBadge } from './Badge'
 import type { Lead, LeadStatus } from '../types'
 
@@ -55,7 +56,10 @@ export function LeadDetailModal({ leadId, onClose, onLeadUpdated }: LeadDetailMo
   const [noteError, setNoteError] = useState<string | null>(null)
 
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const modalRef    = useRef<HTMLDivElement>(null)
   const isOpen = leadId !== null
+
+  useFocusTrap(modalRef, isOpen)
 
   // ── Fetch lead ──────────────────────────────────────────────────────────────
   const fetchLead = useCallback(async () => {
@@ -169,10 +173,12 @@ export function LeadDetailModal({ leadId, onClose, onLeadUpdated }: LeadDetailMo
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
+        ref={modalRef}
         className="bg-white rounded-2xl shadow-2xl w-full max-w-[640px] flex flex-col"
         style={{ maxHeight: '82vh' }}
         role="dialog"
         aria-modal="true"
+        aria-label={lead?.name ? `Lead details: ${lead.name}` : 'Lead details'}
       >
         {/* ── HEADER ──────────────────────────────────────────────────────── */}
         <div className="px-6 py-5 border-b border-slate-100 flex-shrink-0">

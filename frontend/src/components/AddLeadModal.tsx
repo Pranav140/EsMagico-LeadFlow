@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { X, Loader2 } from 'lucide-react'
 import { createLead } from '../api/leads'
+import { useFocusTrap } from '../hooks/useFocusTrap'
 import type { Lead } from '../types'
 
 interface AddLeadModalProps {
@@ -23,7 +24,10 @@ export function AddLeadModal({ isOpen, onClose, onLeadAdded }: AddLeadModalProps
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const nameRef = useRef<HTMLInputElement>(null)
+  const nameRef    = useRef<HTMLInputElement>(null)
+  const modalRef   = useRef<HTMLDivElement>(null)
+
+  useFocusTrap(modalRef, isOpen)
 
   // Focus name input when modal opens
   useEffect(() => {
@@ -104,6 +108,7 @@ export function AddLeadModal({ isOpen, onClose, onLeadAdded }: AddLeadModalProps
     >
       {/* Modal Card */}
       <div
+        ref={modalRef}
         className="bg-white rounded-2xl shadow-2xl w-full max-w-[480px] overflow-hidden"
         role="dialog"
         aria-modal="true"

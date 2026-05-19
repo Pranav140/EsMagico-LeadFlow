@@ -1,4 +1,4 @@
-import { formatDistanceToNow, format } from 'date-fns'
+import { formatTimeAgo, formatFollowUpTime, isOverdue } from '../utils/formatters'
 import { StatusBadge } from './Badge'
 import type { Lead } from '../types'
 
@@ -9,55 +9,72 @@ interface LeadCardProps {
 }
 
 export function LeadCard({ lead, isFollowUp, onClick }: LeadCardProps) {
-  const isWon = lead.status === 'WON'
+  const isWon  = lead.status === 'WON'
   const isLost = lead.status === 'LOST'
-  const isOverdue = lead.overdue
+  const overdue = lead.overdue || isOverdue(lead.nextFollowUp)
 
-  // Styling logic
-  let cardClass = "relative p-4 rounded-xl border border-slate-200 bg-white hover:shadow-md transition-shadow cursor-pointer "
-  
+  let cardClass =
+    'relative p-4 rounded-xl border bg-white hover:shadow-md transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500 '
+
   if (isFollowUp) {
-    cardClass += isOverdue 
-      ? "bg-red-50/30 border-l-4 border-l-red-500 " 
-      : "bg-blue-50/30 border-l-4 border-l-blue-500 "
-  } else if (isWon) {
-    cardClass += "opacity-75 bg-slate-50 "
+    cardClass += overdue
+      ? 'border-slate-200 border-l-4 border-l-red-500 bg-red-50/20 '
+      : 'border-slate-200 border-l-4 border-l-blue-400 bg-blue-50/20 '
   } else if (isLost) {
-    cardClass += "opacity-50 bg-slate-50 "
+    cardClass += 'border-slate-100 opacity-50 '
+  } else if (isWon) {
+    cardClass += 'border-slate-200 opacity-75 bg-slate-50 '
+  } else {
+    cardClass += 'border-slate-200 '
   }
 
   return (
-    <div className={cardClass} onClick={() => onClick(lead)}>
-      <div className="flex justify-between items-start mb-2">
-        <div>
-          <h3 className={`font-semibold text-slate-900 ${isLost ? 'line-through text-slate-500' : ''}`}>
-            {lead.name} <span className="font-normal text-slate-500">({lead.company || 'No Company'})</span>
-          </h3>
-        </div>
+    <div
+      role="button"
+      tabIndex={0}
+      className={cardClass}
+      onClick={() => onClick(lead)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(lead) }}
+      aria-label={`Lead: ${lead.name}${lead.company ? `, ${lead.company}` : ''}, status ${lead.status}`}
+    >
+      {/* Top row */}
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <h3 className={`font-semibold text-slate-900 leading-tight ${isLost ? 'line-through text-slate-400' : ''}`}>
+          {lead.name}
+          {lead.company && (
+            <span className="font-normal text-slate-400 ml-1.5">({lead.company})</span>
+          )}
+        </h3>
         <StatusBadge status={lead.status} />
       </div>
 
-      {isFollowUp ? (
-        <div className="mt-3">
-          {isOverdue ? (
-            <p className="text-sm font-medium text-red-600 flex items-center gap-1">
-              ⚠️ Overdue since {lead.nextFollowUp ? formatDistanceToNow(new Date(lead.nextFollowUp), { addSuffix: true }) : ''}
+      {/* Follow-up row */}
+      {isFollowUp && lead.nextFollowUp && (
+        <div className="mt-2">
+          {overdue ? (
+            <p className="text-sm font-semibold text-red-600 flex items-center gap-1">
+              ⚠️ OVERDUE — {formatTimeAgo(lead.nextFollowUp)}
             </p>
           ) : (
             <p className="text-sm font-medium text-blue-600 flex items-center gap-1">
-              🗓️ Follow-up today at {lead.nextFollowUp ? format(new Date(lead.nextFollowUp), 'h:mm a') : 'Any time'}
+              🔔 Follow-up today at {formatFollowUpTime(lead.nextFollowUp)}
             </p>
           )}
         </div>
-      ) : (
-        <div className="mt-3">
+      )}
+
+      {/* Last discussion row */}
+      {!isFollowUp && (
+        <div className="mt-2">
           {lead.lastDiscussion ? (
-            <div>
-              <p className="text-sm text-slate-600 line-clamp-2">{lead.lastDiscussion.note}</p>
-              <p className="text-xs text-slate-400 mt-1">
-                {formatDistanceToNow(new Date(lead.lastDiscussion.createdAt), { addSuffix: true })}
+            <>
+              <p className="text-sm text-slate-600 line-clamp-2 leading-snug">
+                {lead.lastDiscussion.note}
               </p>
-            </div>
+              <p className="text-xs text-slate-400 mt-1">
+                {formatTimeAgo(lead.lastDiscussion.createdAt)}
+              </p>
+            </>
           ) : (
             <p className="text-sm text-slate-400 italic">No notes yet.</p>
           )}
