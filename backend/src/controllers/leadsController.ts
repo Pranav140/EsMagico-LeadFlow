@@ -62,7 +62,7 @@ export const getLeads = async (req: Request, res: Response, next: NextFunction) 
   try {
     const { status, search } = req.query
 
-    const where: Parameters<typeof prisma.lead.findMany>[0]['where'] = {}
+    const where: Prisma.LeadWhereInput = {}
 
     if (status) {
       if (!Object.values(LeadStatus).includes(status as LeadStatus)) {
