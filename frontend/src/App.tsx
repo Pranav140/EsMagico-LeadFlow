@@ -2,19 +2,10 @@ import { useState } from 'react'
 import { TrendingUp, Search, Plus } from 'lucide-react'
 import { useLeads } from './hooks/useLeads'
 import { LeadCard } from './components/LeadCard'
+import { AddLeadModal } from './components/AddLeadModal'
 import type { Lead } from './types'
 
-// Mock Modals (Full implementation later)
-const AddLeadModal = ({ onClose }: { onClose: () => void }) => (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-    <div className="bg-white p-6 rounded-xl min-w-[400px]">
-      <h2 className="text-xl font-bold mb-4">Add New Lead</h2>
-      <p className="text-slate-500 mb-6">Modal placeholder...</p>
-      <button onClick={onClose} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Close</button>
-    </div>
-  </div>
-)
-
+// LeadDetailModal placeholder (full implementation coming next)
 const LeadDetailModal = ({ lead, onClose }: { lead: Lead; onClose: () => void }) => (
   <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
     <div className="bg-white p-6 rounded-xl min-w-[500px]">
@@ -33,7 +24,7 @@ export default function App() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
 
-  const { leads, followUps, loading, error } = useLeads(activeFilter, searchTerm)
+  const { leads, followUps, loading, error, refetch } = useLeads(activeFilter, searchTerm)
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
@@ -134,7 +125,11 @@ export default function App() {
       </main>
 
       {/* MODALS */}
-      {isAddModalOpen && <AddLeadModal onClose={() => setIsAddModalOpen(false)} />}
+      <AddLeadModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onLeadAdded={() => { setIsAddModalOpen(false); refetch() }}
+      />
       {selectedLead && <LeadDetailModal lead={selectedLead} onClose={() => setSelectedLead(null)} />}
 
     </div>
