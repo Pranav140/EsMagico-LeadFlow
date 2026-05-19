@@ -1,0 +1,73 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: leadflow_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: leadflow
+      POSTGRES_PASSWORD: leadflow_secret
+      POSTGRES_DB: leadflow_db
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U leadflow -d leadflow_db']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - leadflow_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: leadflow_backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://leadflow:leadflow_secret@postgres:5432/leadflow_db?schema=public
+      PORT: 3001
+      FRONTEND_URL: http://localhost:5173
+      NODE_ENV: development
+    ports:
+      - '3001:3001'
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/prisma:/app/prisma
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - leadflow_network
+    command: sh -c "npx prisma migrate deploy && npm run dev"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: leadflow_frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:3001/api
+    ports:
+      - '5173:5173'
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - leadflow_network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  leadflow_network:
+    driver: bridge
