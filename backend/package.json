@@ -4,15 +4,14 @@
   "description": "LeadFlow CRM Backend API",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "nodemon --watch src --ext ts --exec tsx src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "seed": "tsx prisma/seed.ts",
+    "dev":         "tsx watch src/index.ts",
+    "build":       "tsc",
+    "start":       "node dist/index.js",
+    "seed":        "tsx prisma/seed.ts",
+    "migrate":     "prisma migrate dev",
     "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
-    "db:push": "prisma db push",
-    "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:push":     "prisma db push",
+    "studio":      "prisma studio"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

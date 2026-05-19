@@ -1,16 +1,14 @@
-# Stage: Development (hot reload)
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Install dependencies first for better layer caching
+# Install dependencies
 COPY package*.json ./
 RUN npm install
 
-# Copy source (will be overridden by volume mount in dev)
+# Copy source
 COPY . .
 
 EXPOSE 5173
 
-# Vite dev server with host binding for Docker access
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
